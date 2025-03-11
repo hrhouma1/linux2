@@ -505,45 +505,6 @@ http://<adresse_dns_de_votre_vm>/phpmyadmin.php
 ```
 
 
-:::danger Si vous n'arrivez pas à accéder à phpmyadmin
-⚠️ Si vous n'arrivez pas à accéder à phpmyadmin, vérifiez que le service Apache2 est bien démarré (sudo systemctl status apache2) et que le port 80 est bien ouvert dans le pare-feu Azure (règle de sécurité réseau).
-
-1 - Modifier le fichier de configuration
-Tapez cette commande pour ouvrir le fichier :  
-
-```bash
-sudo nano /etc/apache2/conf-available/phpmyadmin.conf
-```
-
-Si nécessaire, ajoutez la ligne suivante (ou vérifiez qu’elle est présente) :  
-
-```bash
-Alias /phpmyadmin /usr/share/phpmyadmin
-```
-
-Enregistrez et fermez le fichier.
-
-2 - Activer la configuration et redémarrer Apache :  
-Exécutez ces commandes pour activer et redémarrer le serveur Apache :  
-
-```bash
-sudo a2enconf phpmyadmin
-sudo systemctl restart apache2
-```
-
-3 - Accéder à phpMyAdmin :  
-Ouvrez votre navigateur et entrez l'URL suivante :  
-
-```bash
-http://20.56.153.78/phpmyadmin
-```
-
-Note : Utilisez `/phpmyadmin` et non `/phpmyadmin.php`, car l'entrée par défaut est `index.php`.
-
-Fini ! Vous devriez maintenant avoir accès à phpMyAdmin.
-
-:::
-
 
 Ajoutez la base de données et le fichier sql:
 
@@ -976,3 +937,83 @@ echo "Azure resources are being deleted..."
 #### [🏠 Retour à la table des matières](#table-des-matieres)
 
 
+
+---
+# Annexe 1 -  Accès via SSH depuis votre ordinateur local
+---
+
+
+
+---
+# Annexe 2 -  Problème d'affichage de la page web sur AZURE (blocage du port 80)
+---
+
+- ⚠️ Si vous n'arrivez pas à accéder à votre site web, vérifiez que le service Apache2 est bien démarré (sudo systemctl restart apache2 et puis sudo systemctl status apache2) et que le port 80 est bien ouvert dans le pare-feu Azure (règle de sécurité réseau).
+- Commande azure pour ouvrir le port 80 depuis azure shell:
+
+```bash
+az vm open-port --resource-group myResourceGroup --name myVM --port 80 --priority 1011
+az vm open-port --resource-group myResourceGroup --name myVM --port 8080 --priority 1012
+az vm open-port --resource-group myResourceGroup --name myVM --port 443 --priority 1013
+az vm open-port --resource-group myResourceGroup --name myVM --port 22 --priority 1014
+```
+:::
+
+
+---
+# Annexe 3 -  Problème de phpmyadmin
+---
+
+
+:::danger Si vous n'arrivez pas à accéder à phpmyadmin
+⚠️ Si vous n'arrivez pas à accéder à phpmyadmin, vérifiez que le service Apache2 est bien démarré (sudo systemctl status apache2) et que le port 80 est bien ouvert dans le pare-feu Azure (règle de sécurité réseau).
+
+1 - Modifier le fichier de configuration
+Tapez cette commande pour ouvrir le fichier :  
+
+```bash
+sudo nano /etc/apache2/conf-available/phpmyadmin.conf
+```
+
+Si nécessaire, ajoutez la ligne suivante (ou vérifiez qu’elle est présente) :  
+
+```bash
+Alias /phpmyadmin /usr/share/phpmyadmin
+```
+
+Enregistrez et fermez le fichier.
+
+2 - Activer la configuration et redémarrer Apache :  
+Exécutez ces commandes pour activer et redémarrer le serveur Apache :  
+
+```bash
+sudo a2enconf phpmyadmin
+sudo systemctl restart apache2
+```
+
+3 - Accéder à phpMyAdmin :  
+Ouvrez votre navigateur et entrez l'URL suivante :  
+
+```bash
+http://20.56.153.78/phpmyadmin
+```
+
+Note : Utilisez `/phpmyadmin` et non `/phpmyadmin.php`, car l'entrée par défaut est `index.php`.
+
+Fini ! Vous devriez maintenant avoir accès à phpMyAdmin.
+
+:::
+
+
+
+---
+# Annexe 4 -  Problème d'affichage de la page index.html (Corriger le css)
+---
+
+Test
+
+---
+# Annexe 5 -  Problème d'exécution de la page index.html (corriger le JavaScript)
+---
+
+Test
