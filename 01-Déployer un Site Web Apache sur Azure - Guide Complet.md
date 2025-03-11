@@ -938,6 +938,13 @@ echo "Azure resources are being deleted..."
 
 
 
+###### Annexe 1 -  Accès via SSH depuis votre ordinateur local
+###### Annexe 2 -  Problème d'affichage de la page web sur AZURE (blocage du port 80)
+###### Annexe 3 -  Problème de phpmyadmin
+###### Annexe 4 -  Problème d'affichage de la page index.html (Corriger le css)
+###### Annexe 5 -  Problème d'exécution de la page index.html (corriger le JavaScript)
+
+
 ---
 # Annexe 1 -  Accès via SSH depuis votre ordinateur local
 ---
