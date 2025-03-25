@@ -1,9 +1,6 @@
-
-
-### Objectif :
-- **Carte 1 : NAT** (Accès à Internet)
-- **Carte 2 : Host-Only Adapter** (Pour la communication directe entre l’hôte et la VM)
-- **Carte 3 : NAT Network** (Pour une communication isolée entre plusieurs VM si besoin)
+### Objectif :  
+- **Carte 1 : NAT Network** (`enp0s3`) - IP statique : `192.168.2.10/24` pour communication entre plusieurs VM.  
+- **Carte 2 : Accès par Pont (Bridged Adapter)** (`enp0s8`) - IP obtenue via DHCP pour avoir accès direct au réseau physique.  
 
 ---
 
@@ -12,11 +9,10 @@
 2. Allez dans les paramètres de la VM (Configuration > Réseau).  
 3. Configurez les adaptateurs réseau comme suit :  
 
-| Adaptateur | Type                | Nom de l'interface | Objectif                   |
-|------------|---------------------|--------------------|---------------------------|
-| Adaptateur 1 | NAT                | par défaut         | Pour accéder à Internet.  |
-| Adaptateur 2 | Host-Only Adapter   | `vboxnet0` (ou autre) | Pour la connexion avec votre hôte. |
-| Adaptateur 3 | NAT Network         | `NatNetwork`       | Pour communication inter-VM. |
+| Adaptateur | Type                | Nom de l'interface | Objectif                              |
+|------------|---------------------|--------------------|-------------------------------------|
+| Adaptateur 1 | NAT Network         | `NatNetwork`       | Communication inter-VM (IP statique). |
+| Adaptateur 2 | Bridged Adapter     | Nom de votre carte réseau physique | Accès au réseau physique par DHCP. |
 
 ---
 
@@ -27,21 +23,15 @@ Ouvrez votre fichier `/etc/netplan/00-installer-config.yaml` et configurez-le ai
 network:
   version: 2
   ethernets:
-    enp0s3:   # Adaptateur 1 : NAT
-      dhcp4: yes
-
-    enp0s8:   # Adaptateur 2 : Host-Only Adapter
-      addresses: [192.168.56.10/24]
-      dhcp4: no
-      nameservers:
-        addresses: [8.8.8.8]
-
-    enp0s9:   # Adaptateur 3 : NAT Network
+    enp0s3:   # Adaptateur 1 : NAT Network
       addresses: [192.168.2.10/24]
       gateway4: 192.168.2.1
       dhcp4: no
       nameservers:
         addresses: [8.8.8.8]
+        
+    enp0s8:   # Adaptateur 2 : Bridged Adapter
+      dhcp4: yes
 ```
 
 ---
@@ -56,93 +46,98 @@ sudo netplan apply
 ---
 
 ### Étape 4 : Vérification de la configuration réseau  
-1. Vérifier les interfaces configurées :  
+1. **Vérifier les interfaces configurées :**  
 ```bash
 ip addr
 ```
-Vous devez voir les trois interfaces :  
-- `enp0s3` avec une IP fournie par DHCP (NAT)  
-- `enp0s8` avec `192.168.56.10` (Host-Only)  
-- `enp0s9` avec `192.168.2.10` (NAT Network)  
+Vous devez voir :  
+- `enp0s3` avec l’IP statique `192.168.2.10/24`  
+- `enp0s8` avec une IP attribuée par DHCP (souvent votre réseau local, par exemple `192.168.x.x` ou `10.x.x.x`).  
 
-2. Vérifier la connexion Internet :  
+2. **Vérifier la connexion Internet via l'adaptateur ponté :**  
 ```bash
 ping -c 4 8.8.8.8
 ```
 
-3. Vérifier la communication entre VM (si nécessaire) :  
-- Depuis une autre VM sur le même réseau `NAT Network`, essayez :  
+3. **Vérifier la connexion NAT Network :**  
+Depuis une autre VM connectée au même réseau `NatNetwork`, essayez :  
 ```bash
 ping 192.168.2.10
 ```
+
+
 
 # Annexe: 
 
 
-### **Étape 1 : Vérification de la connexion Internet (NAT - enp0s3)**
-Cette interface doit fournir une IP automatiquement par DHCP.
 
-1. Tapez la commande suivante pour vérifier l'adresse IP assignée :
+### **Étape 1 : Vérification de l'adaptateur NAT Network (`enp0s3`)**  
+Cet adaptateur est censé avoir une adresse IP statique (`192.168.2.10/24`) pour la communication inter-VM.
+
+1. **Vérifiez l’adresse IP de `enp0s3` :**  
 ```bash
 ip addr show enp0s3
 ```
-Vérifiez que vous avez une adresse IP valide (généralement quelque chose comme `10.0.x.x` ou `192.168.x.x`).
-
-2. Testez la connexion Internet :
-```bash
-ping -c 4 8.8.8.8
+Vous devez voir quelque chose comme :
 ```
-Si cela fonctionne, c'est que l'accès Internet est opérationnel via votre NAT.
-
----
-
-### **Étape 2 : Vérification de la connexion Host-Only (enp0s8)**
-Cette interface doit avoir une IP statique (`192.168.56.10`).
-
-1. Vérifiez l'adresse IP attribuée :
-```bash
-ip addr show enp0s8
+inet 192.168.2.10/24
 ```
-Vous devez voir l'adresse `192.168.56.10/24`.
 
-2. Depuis votre machine hôte (votre ordinateur), essayez de pinguer l'adresse IP de votre VM :
-```bash
-ping 192.168.56.10
-```
-Si cela fonctionne, la connexion Host-Only est bien configurée.
-
----
-
-### **Étape 3 : Vérification de la connexion NAT Network (enp0s9)**
-Cette interface doit avoir une IP statique (`192.168.2.10`).
-
-1. Vérifiez l'adresse IP attribuée :
-```bash
-ip addr show enp0s9
-```
-Vous devez voir l'adresse `192.168.2.10/24`.
-
-2. Vérifiez la route par défaut :
+2. **Vérifiez la route par défaut :**  
 ```bash
 ip route
 ```
-Vous devez voir une ligne comme :
+Vous devez voir quelque chose comme : 
 ```
-default via 192.168.2.1 dev enp0s9
+default via 192.168.2.1 dev enp0s3
 ```
 
-3. Depuis une autre machine virtuelle connectée au même NAT Network (`NatNetwork`), essayez de pinguer cette IP :
+3. **Testez la connexion entre VM sur le même réseau NAT Network :**  
+Depuis une autre VM configurée sur le même `NatNetwork`, tapez :  
 ```bash
 ping 192.168.2.10
 ```
-Si cela fonctionne, c'est que la communication inter-VM via le NAT Network est bien configurée.
+Si cela répond, l’adaptateur NAT Network est bien configuré.
 
 ---
 
-### **Étape 4 : Vérification de la résolution DNS (optionnel)**
-Si vous voulez vous assurer que le DNS est bien configuré, tapez :
+### **Étape 2 : Vérification de l'adaptateur Bridged (`enp0s8`)**  
+Cet adaptateur doit obtenir une adresse IP automatiquement via DHCP pour accéder à Internet.
+
+1. **Vérifiez l’adresse IP de `enp0s8` :**  
 ```bash
-systemd-resolve --status
+ip addr show enp0s8
 ```
-Vérifiez que `8.8.8.8` apparaît comme serveur DNS configuré pour au moins une interface.
+Vous devez voir une adresse IP attribuée par votre routeur local (par exemple `192.168.x.x` ou `10.x.x.x`).
+
+2. **Vérifiez l'accès Internet :**  
+```bash
+ping -c 4 8.8.8.8
+```
+Si vous obtenez une réponse, l'accès Internet fonctionne.
+
+3. **Vérifiez la résolution DNS :**  
+```bash
+ping -c 4 google.com
+```
+Si cela fonctionne, la résolution DNS fonctionne bien.
+
+---
+
+### **Étape 3 : Vérification des deux connexions ensemble**  
+Maintenant, vous voulez vérifier que **les deux cartes sont bien fonctionnelles en même temps**.
+
+1. **Vérifiez la table de routage :**  
+```bash
+ip route
+```
+Vous devez voir deux lignes principales :  
+- `192.168.2.0/24 dev enp0s3 proto static ...` (NAT Network)  
+- `default via ... dev enp0s8 ...` (Ponté - Internet)  
+
+2. **Vérifiez que vous pouvez atteindre Internet via `enp0s8` :**  
+```bash
+curl ifconfig.me
+```
+Cela devrait vous retourner l’IP publique fournie par votre réseau physique (pas `192.168.2.10`).
 
