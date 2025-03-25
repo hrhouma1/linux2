@@ -438,5 +438,223 @@ Ce guide couvre toutes les commandes nécessaires pour diagnostiquer, dépanner,
 ---
 
 Des **méthodes spécifiques pour chaque type de problème** ?  
-Voulez-vous aussi que j'intègre des **commandes pour tester chaque couche du réseau (Ethernet, TCP/UDP, DNS, etc.)** ?   
+-  **commandes pour tester chaque couche du réseau (Ethernet, TCP/UDP, DNS, etc.)** ?
+
+
+
+
+### 9. Test de Connexions par Couches Réseau (Ethernet, IP, TCP/UDP, DNS)
+
+---
+
+#### **A. Couche 1 : Physique / Ethernet (Détection matérielle, câblage, etc.)**
+
+1. **Vérifier si l’interface est activée :**
+```bash
+ip link show enp0s8
+```
+- Statut `UP` indique que l’interface est activée.  
+- Si `DOWN`, activez-la avec :  
+```bash
+sudo ip link set enp0s8 up
+```
+
+2. **Vérifier les statistiques Ethernet :**
+```bash
+ethtool -S enp0s8
+```
+- Affiche les erreurs physiques comme les collisions, les paquets perdus, etc.
+
+3. **Diagnostiquer le câble réseau (si applicable) :**
+```bash
+sudo mii-tool enp0s8
+```
+- Vérifie si le câble est connecté et affiche la vitesse de connexion.
+
+---
+
+#### **B. Couche 2 : Liaison de Données (ARP, VLAN)**
+
+1. **Afficher la table ARP :**
+```bash
+ip neigh show
+```
+- Affiche toutes les adresses MAC connues sur le réseau.
+
+2. **Vérifier un conflit IP potentiel :**
+```bash
+arping -I enp0s8 192.168.56.100
+```
+- Si vous recevez une réponse, cela signifie que l’adresse IP est déjà utilisée sur le réseau.
+
+3. **Analyser les requêtes ARP :**
+```bash
+sudo tcpdump -i enp0s8 arp
+```
+- Capture toutes les requêtes ARP (utilisé pour détecter les conflits IP).
+
+---
+
+#### **C. Couche 3 : Réseau (IP, Routage)**
+
+1. **Vérifier les routes configurées :**
+```bash
+ip route show
+```
+- Affiche les routes actuelles du système.
+
+2. **Afficher la passerelle par défaut :**
+```bash
+ip route | grep default
+```
+- Vérifie si une passerelle est correctement configurée.
+
+3. **Tester la connectivité IP :**
+```bash
+ping -c 4 192.168.56.1
+```
+- Si aucune réponse, vérifier les règles de pare-feu ou la configuration IP.
+
+---
+
+#### **D. Couche 4 : Transport (TCP/UDP)**
+
+1. **Lister toutes les connexions TCP actives :**
+```bash
+sudo ss -tuln
+```
+- Affiche toutes les connexions TCP en écoute.
+
+2. **Tester une connexion TCP spécifique :**
+```bash
+telnet 192.168.56.1 22
+```
+- Permet de tester si un port particulier est ouvert.
+
+3. **Scanner un port UDP spécifique :**
+```bash
+sudo nmap -sU -p 53 192.168.56.1
+```
+- Vérifie si le port DNS (53) est ouvert et accessible.
+
+---
+
+#### **E. Couche 5 à 7 : Application (DNS, HTTP, etc.)**
+
+1. **Vérifier la résolution DNS :**
+```bash
+dig google.com
+```
+ou 
+```bash
+nslookup google.com
+```
+- Vérifie si le serveur DNS est fonctionnel.
+
+2. **Analyser le trafic DNS :**
+```bash
+sudo tcpdump -i enp0s8 port 53
+```
+- Capture toutes les requêtes DNS pour vérifier leur bon fonctionnement.
+
+3. **Tester une connexion HTTP :**
+```bash
+curl -I http://google.com
+```
+- Affiche les en-têtes HTTP renvoyés par le serveur.  
+
+---
+
+### 10. Dépannage DNS Défaillant (DNS, DHCP, IP)
+
+---
+
+#### **A. Vérification des Paramètres DNS :**
+1. Afficher les DNS utilisés :  
+```bash
+cat /etc/resolv.conf
+```
+2. Forcer l'utilisation d'un DNS spécifique :  
+```bash
+dig @8.8.8.8 google.com
+```
+3. Vérifier si un DNS particulier répond :  
+```bash
+ping 8.8.8.8
+```
+4. Tester la résolution DNS via une requête brute :  
+```bash
+host google.com
+```
+
+---
+
+#### **B. Problèmes DHCP (Pas d’IP attribuée)**
+
+1. Demander une nouvelle IP :  
+```bash
+sudo dhclient enp0s8
+```
+2. Relâcher l'adresse IP actuelle :  
+```bash
+sudo dhclient -r enp0s8
+```
+3. Afficher les requêtes DHCP en cours :  
+```bash
+sudo dhclient -v enp0s8
+```
+4. Capturer le trafic DHCP pour analyse :  
+```bash
+sudo tcpdump -i enp0s8 port 67 or port 68
+```
+
+---
+
+#### **C. Détection des Conflits d’Adresses IP :**
+
+1. Analyser les requêtes ARP :  
+```bash
+sudo tcpdump -i enp0s8 arp
+```
+2. Vérifier si une adresse IP est déjà utilisée :  
+```bash
+arping -I enp0s8 192.168.56.100
+```
+3. Lister les adresses IP conflictuelles :  
+```bash
+ip neigh show
+```
+
+---
+
+### 11. Optimisation Réseau Avancée (Performance)
+
+---
+
+#### **A. Modification de la Taille du MTU :**
+```bash
+sudo ip link set enp0s8 mtu 1400
+```
+- Réduit le risque de fragmentation des paquets.
+
+#### **B. Activer les Offloads TCP/UDP :**
+```bash
+sudo ethtool -K enp0s8 tso on
+sudo ethtool -K enp0s8 gso on
+```
+- Améliore l'efficacité du traitement réseau en déchargeant certaines tâches sur la carte réseau.
+
+#### **C. Surveillance en Temps Réel :**
+```bash
+sudo iftop -i enp0s8
+```
+- Affiche les adresses IP qui consomment le plus de bande passante.
+
+---
+
+ 
+- Des **scénarios de dépannage spécifiques (exemples complets avec explications)** ?  
+- Des **techniques avancées de sécurité réseau (pare-feu, iptables, etc.)** ?  
+- Des **outils supplémentaires pour le monitoring réseau (vnstat, iperf, etc.)** ?  
+
 
