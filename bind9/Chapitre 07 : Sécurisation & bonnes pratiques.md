@@ -1,157 +1,172 @@
-# Chapitre 8 – Travaux Pratiques (TP)
+# Chapitre 7 – Sécurisation et bonnes pratiques
 
-### Objectif général
+## 7.1 Objectif
 
-Mettre en œuvre les connaissances théoriques sur un environnement réel ou virtualisé, en suivant des scénarios pratiques. Ces TPs permettent de :
-- Configurer un serveur DNS complet avec BIND9
-- Créer et tester des zones directe et inverse
-- Diagnostiquer des erreurs courantes
-- Appliquer les bonnes pratiques de sécurisation
+Un serveur DNS est un composant critique d'une infrastructure réseau. Il peut être la cible d'attaques comme :
+- L’exploitation de récursivité ouverte
+- Le cache poisoning (empoisonnement du cache DNS)
+- Le déni de service (DoS)
+- L’accès non autorisé aux données de zones internes
 
-
-
-# TP1 : Installer et démarrer un serveur DNS BIND9
-
-**But** : Mettre en place un serveur BIND9 fonctionnel sur une machine Debian/Ubuntu.
-
-**Étapes** :
-1. Créer une machine virtuelle (ou utiliser un conteneur) sous Ubuntu Server
-2. Installer BIND9 avec :
-   ```bash
-   sudo apt update
-   sudo apt install bind9 bind9utils bind9-doc dnsutils -y
-   ```
-3. Vérifier que le service est actif :
-   ```bash
-   sudo systemctl status bind9
-   ```
+Ce chapitre présente les bonnes pratiques pour **sécuriser un serveur BIND9**, et limiter les risques liés à une mauvaise configuration.
 
 
 
-# TP2 : Création d’une zone DNS directe
+## 7.2 Limitation des requêtes aux clients autorisés
 
-**But** : Ajouter une zone DNS gérée localement et effectuer la résolution d’un nom en IP.
+Par défaut, un serveur DNS peut être accessible à tous. Pour restreindre les requêtes DNS uniquement à un réseau interne, modifier le fichier `/etc/bind/named.conf.options`.
 
-**Contexte** :
-- Domaine : `monreseau.local`
-- Serveur de nom : `ns1.monreseau.local` → `192.168.50.10`
-- Site web : `www.monreseau.local` → `192.168.50.20`
+Exemple :
 
-**Étapes** :
-1. Déclarer la zone dans `/etc/bind/named.conf.local` :
-   ```bash
-   zone "monreseau.local" {
-       type master;
-       file "/etc/bind/zones/db.monreseau.local";
-   };
-   ```
-2. Créer le fichier `/etc/bind/zones/db.monreseau.local`
-3. Ajouter les enregistrements A et NS
-4. Vérifier avec `named-checkzone`
-5. Redémarrer BIND et tester avec `dig` et `host`
+```bash
+options {
+    directory "/var/cache/bind";
 
+    allow-query { 127.0.0.1; 192.168.1.0/24; };
 
+    recursion yes;
+    allow-recursion { 127.0.0.1; 192.168.1.0/24; };
 
-# TP3 : Création d’une zone inverse
+    listen-on { 127.0.0.1; 192.168.1.10; };
+};
+```
 
-**But** : Configurer une zone inverse pour `192.168.50.0/24`
-
-**Étapes** :
-1. Déclarer la zone dans `named.conf.local` :
-   ```bash
-   zone "50.168.192.in-addr.arpa" {
-       type master;
-       file "/etc/bind/zones/db.192";
-   };
-   ```
-2. Créer `/etc/bind/zones/db.192`
-3. Ajouter les enregistrements PTR pour :
-   - `192.168.50.10 → ns1.monreseau.local`
-   - `192.168.50.20 → www.monreseau.local`
-4. Vérifier et redémarrer BIND
-5. Tester avec `dig -x` et `nslookup`
-
-
-# TP4 : Ajouter des enregistrements DNS supplémentaires
-
-**But** : Ajouter des enregistrements spécifiques pour simuler une infrastructure réelle.
-
-**Nouveaux enregistrements à ajouter** :
-- `mail.monreseau.local` → `192.168.50.30` (A)
-- `@ MX 10 mail.monreseau.local.` (MX)
-- `ftp.monreseau.local` → alias de `www.monreseau.local` (CNAME)
-
-**Étapes** :
-1. Modifier le fichier de zone directe
-2. Incrémenter le numéro de série (SOA)
-3. Vérifier, redémarrer BIND
-4. Tester chaque enregistrement
+Explication :
+- `allow-query` : contrôle les clients pouvant interroger ce serveur DNS
+- `allow-recursion` : limite la récursivité aux clients internes
+- `listen-on` : borne les interfaces réseau utilisées par BIND
 
 
 
-# TP5 : Sécuriser le serveur DNS
+## 7.3 Désactivation de la récursivité si inutile
 
-**But** : Appliquer des règles de sécurité de base
+Si le serveur DNS est **strictement autoritaire** (et ne fait pas de résolutions récursives), désactivez cette fonctionnalité :
 
-**Tâches** :
-1. Limiter les requêtes aux clients internes :
-   ```bash
-   allow-query { 127.0.0.1; 192.168.50.0/24; };
-   allow-recursion { 127.0.0.1; 192.168.50.0/24; };
-   ```
-2. Restreindre le transfert de zone :
-   ```bash
-   allow-transfer { 192.168.50.11; };
-   ```
-3. Créer un fichier de log dédié et configurer une section `logging`
-4. Vérifier les droits d’accès sur `/etc/bind/zones`
+```bash
+options {
+    recursion no;
+};
+```
 
 
 
-# TP6 : Déboguer une erreur DNS
+## 7.4 Cloisonnement des informations de zone
 
-**But** : Comprendre et corriger des erreurs courantes
+Évitez de divulguer des données internes à des utilisateurs extérieurs. Pour cela, définissez des vues conditionnelles (`views`) ou utilisez des ACLs.
 
-**Situation simulée** :
-- Le fichier de zone contient un `;` manquant ou un champ oublié
-- Le numéro de série n’a pas été incrémenté
-- Le nom de fichier est incorrect
+Exemple : masquer une zone à tout utilisateur externe
 
-**Tâches** :
-1. Identifier le problème avec :
-   ```bash
-   sudo named-checkzone
-   sudo systemctl status bind9
-   sudo journalctl -xe
-   ```
-2. Corriger les erreurs
-3. Relancer le service et tester à nouveau
+```bash
+acl reseau_local { 192.168.1.0/24; 127.0.0.1; };
+
+options {
+    allow-query { reseau_local; };
+};
+```
 
 
 
-# TP7 : Mise en œuvre d’un DNS secondaire (bonus)
+## 7.5 Protection contre le transfert de zone non autorisé
 
-**But** : Configurer un serveur DNS esclave qui récupère les données du serveur maître
+Un transfert de zone DNS permet à un serveur secondaire de récupérer la totalité des enregistrements d’un domaine.  
+Par défaut, BIND autorise les transferts depuis n'importe quel hôte, ce qui représente un **risque de fuite de données**.
 
-**Pré-requis** : Deux machines (ou deux conteneurs)
+Restreindre les transferts de zone à des serveurs précis :
 
-**Tâches** :
-1. Sur le maître, autoriser le transfert vers l’IP du serveur secondaire
-2. Sur le secondaire, déclarer la zone comme `type slave`, avec le bon `masters`
-3. Redémarrer les deux services
-4. Vérifier que les fichiers sont bien transférés
+```bash
+zone "inskillboost.local" {
+    type master;
+    file "/etc/bind/zones/db.inskillboost.local";
+    allow-transfer { 192.168.1.11; };  // IP du serveur esclave autorisé
+};
+```
 
 
 
-# Résumé des compétences exercées
+## 7.6 DNSSEC (DNS Security Extensions)
 
-| TP | Compétence principale |
-|----|------------------------|
-| 1  | Installation de BIND9 |
-| 2  | Zone directe |
-| 3  | Zone inverse |
-| 4  | Enregistrements DNS |
-| 5  | Sécurisation |
-| 6  | Débogage |
-| 7  | Maître/Esclave |
+DNSSEC permet de signer cryptographiquement les zones DNS pour garantir leur authenticité.
+
+Activation dans les options :
+
+```bash
+dnssec-validation auto;
+```
+
+La mise en place complète de DNSSEC nécessite :
+- La génération de clés
+- La signature des zones
+- La distribution de la clé publique
+(Ce sujet est avancé et traité dans un module spécifique.)
+
+
+
+## 7.7 Droits et permissions des fichiers
+
+Les fichiers de zone doivent être lisibles uniquement par l’utilisateur `bind`.
+
+Assurez-vous que :
+
+```bash
+sudo chown -R bind:bind /etc/bind/zones
+sudo chmod -R 640 /etc/bind/zones
+```
+
+Évitez que d'autres utilisateurs puissent écrire ou lire ces fichiers.
+
+
+
+## 7.8 Surveillance et journalisation
+
+Le suivi des événements DNS est crucial. Par défaut, BIND utilise `syslog`. Pour une journalisation personnalisée, vous pouvez ajouter une section `logging` dans `/etc/bind/named.conf`.
+
+Exemple de base :
+
+```bash
+logging {
+    channel default_log {
+        file "/var/log/bind9.log";
+        severity info;
+        print-time yes;
+    };
+
+    category default { default_log; };
+};
+```
+
+Créer le fichier de log et ajuster les permissions :
+
+```bash
+sudo touch /var/log/bind9.log
+sudo chown bind:bind /var/log/bind9.log
+```
+
+Redémarrer BIND9 :
+
+```bash
+sudo systemctl restart bind9
+```
+
+
+
+## 7.9 Autres bonnes pratiques
+
+- **Sauvegarder régulièrement les fichiers de zone**
+- **Utiliser des numéros de série dynamiques** (`YYYYMMDDnn`)
+- **Redémarrer le service après chaque modification**
+- **Utiliser `named-checkzone` systématiquement avant rechargement**
+- **Restreindre l’accès SSH à la machine DNS**
+- **Utiliser un pare-feu (UFW, iptables)** pour limiter les ports ouverts
+
+
+## 7.10 Résumé
+
+| Action                              | But                                      |
+|-------------------------------------|------------------------------------------|
+| Restriction des requêtes            | Éviter les abus extérieurs               |
+| Désactivation de la récursivité     | Réduction de la surface d’attaque        |
+| Protection des transferts de zone   | Confidentialité des données DNS         |
+| Journalisation                      | Suivi et analyse des comportements       |
+| Droits sur les fichiers             | Sécurité des données critiques           |
+| DNSSEC                              | Authentification des enregistrements DNS |
 
