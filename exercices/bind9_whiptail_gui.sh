@@ -1,0 +1,83 @@
+#!/bin/bash
+
+LOGFILE="diagnostic_bind9_gui_$(date +%Y%m%d_%H%M%S).log"
+exec > >(tee -a "$LOGFILE") 2>&1
+
+while true; do
+  CHOICE=$(whiptail --title "Menu Diagnostique BIND9" --menu "Sélectionne une option :" 25 78 15 \
+  "1" "État du service BIND9" \
+  "2" "Logs récents (journalctl)" \
+  "3" "Vérification configuration BIND9" \
+  "4" "Afficher /etc/resolv.conf" \
+  "5" "Ports et processus (ss, netstat, lsof)" \
+  "6" "Interfaces réseau (ip a)" \
+  "7" "Scan de port 53 avec Nmap" \
+  "8" "Résolutions DNS avec dig" \
+  "9" "Résolutions avancées (MX, trace, stats)" \
+  "10" "Résolutions inversées (dig -x)" \
+  "11" "Analyse sockets DNS avec lsof" \
+  "12" "Autres outils système" \
+  "13" "Quitter" 3>&1 1>&2 2>&3)
+
+  exitstatus=$?
+  if [ $exitstatus != 0 ]; then
+    echo "Fermeture. Résultats enregistrés dans : $LOGFILE"
+    exit
+  fi
+
+  case $CHOICE in
+    1)
+      systemctl status bind9
+      ;;
+    2)
+      journalctl -u bind9 -n 50
+      ;;
+    3)
+      named-checkconf /etc/bind/named.conf
+      named-checkzone ns.local /etc/bind/db.ns.local
+      ;;
+    4)
+      cat /etc/resolv.conf
+      ;;
+    5)
+      ss -tulnp | grep :53
+      netstat -tulnp | grep :53
+      lsof -i :53
+      ;;
+    6)
+      ip a
+      ;;
+    7)
+      nmap -p 53 127.0.0.1
+      ;;
+    8)
+      for host in ns.local dns.ns.local pop3.ns.local mail.ns.local smtp.ns.local; do
+        dig $host
+      done
+      ;;
+    9)
+      dig mail.ns.local MX
+      dig mail.ns.local A +noall +answer +stats
+      dig mail.ns.local +trace
+      ;;
+    10)
+      dig -x 192.168.2.10
+      dig -x 127.0.0.1
+      ;;
+    11)
+      lsof -nP -iUDP:53
+      lsof -nP -iTCP:53
+      ;;
+    12)
+      systemctl list-unit-files | grep bind
+      ps aux | grep named
+      resolvectl status
+      ;;
+    13)
+      echo "🛑 Script terminé. Résultats dans : $LOGFILE"
+      exit 0
+      ;;
+  esac
+
+  read -p $'✔️ Appuie sur Entrée pour revenir au menu...' temp
+done

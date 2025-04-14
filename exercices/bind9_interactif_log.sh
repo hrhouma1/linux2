@@ -1,0 +1,100 @@
+#!/bin/bash
+
+LOGFILE="diagnostic_bind9_$(date +%Y%m%d_%H%M%S).log"
+exec > >(tee -a "$LOGFILE") 2>&1
+
+clear
+echo "==================================================================="
+echo " 🧭 SCRIPT INTERACTIF - DIAGNOSTIC DNS BIND9 (avec LOG automatique)"
+echo "==================================================================="
+echo ""
+PS3="Choisis une option (ou CTRL+C pour quitter) : "
+
+options=(
+  "1. État du service BIND9"
+  "2. Logs récents (journalctl)"
+  "3. Vérification configuration BIND9"
+  "4. Affichage /etc/resolv.conf"
+  "5. Vérification des ports (ss, netstat, lsof)"
+  "6. Interfaces réseau (ip a)"
+  "7. Scan de port DNS avec Nmap"
+  "8. Résolutions DNS avec dig"
+  "9. Résolutions avancées (dig +short, +trace, MX)"
+  "10. Résolutions inversées (dig -x)"
+  "11. Analyse des sockets avec lsof"
+  "12. Autres diagnostics utiles"
+  "13. Quitter"
+)
+
+select opt in "${options[@]}"; do
+  case $REPLY in
+    1)
+      echo "🔧 État du service BIND9"
+      systemctl status bind9
+      ;;
+    2)
+      echo "🗒️ Logs récents de BIND9"
+      journalctl -u bind9 -n 50
+      ;;
+    3)
+      echo "✅ Vérification configuration BIND9"
+      named-checkconf /etc/bind/named.conf
+      named-checkzone ns.local /etc/bind/db.ns.local
+      ;;
+    4)
+      echo "📄 /etc/resolv.conf"
+      cat /etc/resolv.conf
+      ;;
+    5)
+      echo "📡 Vérification des ports (ss, netstat, lsof)"
+      ss -tulnp | grep :53
+      netstat -tulnp | grep :53
+      lsof -i :53
+      ;;
+    6)
+      echo "🌐 Interfaces réseau"
+      ip a
+      ;;
+    7)
+      echo "🛰️ Scan Nmap du port 53"
+      nmap -p 53 127.0.0.1
+      ;;
+    8)
+      echo "🔎 Résolution DNS avec dig"
+      for host in ns.local dns.ns.local pop3.ns.local mail.ns.local smtp.ns.local; do
+        echo "dig $host"
+        dig $host
+      done
+      ;;
+    9)
+      echo "📌 Résolutions avancées"
+      dig mail.ns.local MX
+      dig mail.ns.local A +noall +answer +stats
+      dig mail.ns.local +trace
+      ;;
+    10)
+      echo "↩️ Résolutions inversées"
+      dig -x 192.168.2.10
+      dig -x 127.0.0.1
+      ;;
+    11)
+      echo "🔬 lsof - Sockets DNS"
+      lsof -nP -iUDP:53
+      lsof -nP -iTCP:53
+      ;;
+    12)
+      echo "📚 Autres outils utiles"
+      systemctl list-unit-files | grep bind
+      ps aux | grep named
+      resolvectl status
+      ;;
+    13)
+      echo "🛑 Fin du script. Les résultats sont sauvegardés dans : $LOGFILE"
+      exit 0
+      ;;
+    *)
+      echo "Option invalide"
+      ;;
+  esac
+  echo ""
+done
