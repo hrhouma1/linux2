@@ -102,3 +102,49 @@ readme_directory = no
 | `readme_directory`              | `no`                                | Pas de répertoire README défini |
 
 
+# Partie 2
+
+
+```bash
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+biff = no
+
+# appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+readme_directory = no
+
+# See http://www.postfix.org/COMPATIBILITY_README.html -- default to 2 on
+# fresh installs.
+compatibility_level = 2
+```
+
+
+# Partie 3
+
+
+```bash
+# TLS parameters
+smtpd_tls_cert_file=/etc/ssl/certs/ssl-cert-snakeoil.pem
+smtpd_tls_key_file=/etc/ssl/private/ssl-cert-snakeoil.key
+smtpd_tls_security_level=may
+
+smtp_tls_CApath=/etc/ssl/certs
+smtp_tls_security_level=may
+smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache
+
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+myhostname = ubuntu.ns.local
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+mydestination = $myhostname, ubuntu, localhost.localdomain, ns.local, mail.ns.local, localhost
+relayhost = [smtp.gmail.com]:587
+virtual_alias_maps = hash:/etc/postfix/virtual
+mynetworks = 127.0.0.0/8, 192.168.2.0/24
+mailbox_size_limit = 0
+recipient_delimiter = +
+```
+
