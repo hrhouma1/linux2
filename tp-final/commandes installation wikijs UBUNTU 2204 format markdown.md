@@ -18,6 +18,7 @@ Ce document guide à travers l'installation de Wiki.js, un moteur Wiki moderne e
 Wiki.js nécessite Git. Pour l'installer sur Ubuntu 22.04, suivez ces étapes :
 
 ```bash
+sudo -s (ou su)
 sudo apt update
 sudo apt install git
 ```
