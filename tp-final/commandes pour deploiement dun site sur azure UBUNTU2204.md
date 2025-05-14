@@ -1,13 +1,3 @@
----
-sidebar_position: 1 
-sidebar_label: "Projet 01"
-title: "Projet 01"
-description: "Projet 01"
-keywords: [ssl, tls, sécurité, https, certificats]
-slug: /linux3/ssl-tls/projet-01
----
-
-
 # Introduction à SSL/TLS, Certbot et Let's Encrypt (Partie 01)
 
 <a name="table-des-matieres"></a>
