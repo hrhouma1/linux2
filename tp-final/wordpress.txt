@@ -1,0 +1,141 @@
+
+
+
+su
+apt update
+sudo apt install -y apache2 php php-{mysql,xml,mbstring,curl,zip,gd} libapache2-mod-php mariadb-server wget
+
+# Sécurisation de l'installation de MariaDB
+sudo mysql_secure_installation
+
+
+# Connexion à MariaDB et création de la base de données WordPress et de l'utilisateur
+
+CREATE DATABASE wordpressdb;
+CREATE USER 'wordpressuser'@'localhost' IDENTIFIED BY 'securepassword1';
+GRANT ALL PRIVILEGES ON wordpressdb.* TO 'wordpressuser'@'localhost';
+FLUSH PRIVILEGES;
+EXIT;
+
+
+# Téléchargement et extraction de WordPress
+cd /tmp
+wget https://wordpress.org/latest.tar.gz
+sudo tar xzvf latest.tar.gz -C /var/www/html/
+
+# Configuration des permissions
+sudo chown -R www-data:www-data /var/www/html/wordpress
+sudo chmod -R 775 /var/www/html/wordpress
+
+# Création du fichier de configuration pour WordPress dans Apache
+nano /etc/apache2/sites-available/wordpress.conf
+
+
+<VirtualHost *:8080>
+    ServerName localhost
+    DocumentRoot /var/www/html/wordpress
+
+    <Directory /var/www/html/wordpress>
+        Options FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog \${APACHE_LOG_DIR}/wordpress_error.log
+    CustomLog \${APACHE_LOG_DIR}/wordpress_access.log combined
+</VirtualHost>
+
+
+
+
+# Activation de la configuration et redémarrage d'Apache
+sudo a2ensite wordpress.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+
+# Accédez au site
+1. Ouvrez un navigateur et accédez à http://127.0.0.1:8080/wordpress
+
+
+# Notez l'erreur numéro 1 et l'expliquer brièvemenet 
+
+
+# Résolution de l'erreur 
+
+sudo rm /etc/apache2/sites-available/wordpress.conf
+sudo nano /etc/apache2/sites-available/wordpress.conf
+
+
+Ci-bas un exemple correct pour un site sur le port 8080 :
+
+
+<VirtualHost *:8080>
+    ServerName localhost
+    DocumentRoot /var/www/html/wordpress
+
+    <Directory /var/www/html/wordpress>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/wordpress_error.log
+    CustomLog ${APACHE_LOG_DIR}/wordpress_access.log combined
+</VirtualHost>
+
+
+
+
+# Activez le site et redémarrez Apache :
+sudo a2ensite wordpress.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+
+# Vérifiez le statut :
+systemctl status apache2
+
+
+# Accédez au site
+1. Ouvrez un navigateur et accédez à http://127.0.0.1:8080/wordpress
+
+
+# Notez l'erreur numéro 2 et l'expliquer brièvemenet 
+
+
+# Résolution de l'erreur 
+
+sudo nano /etc/apache2/sites-available/wordpress.conf
+
+
+
+
+Changez le port de 8080 à 80
+
+<VirtualHost *:80>
+    ServerName localhost
+    DocumentRoot /var/www/html/wordpress
+
+    <Directory /var/www/html/wordpress>
+        Options Indexes FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+
+    ErrorLog ${APACHE_LOG_DIR}/wordpress_error.log
+    CustomLog ${APACHE_LOG_DIR}/wordpress_access.log combined
+</VirtualHost>
+
+
+
+# Activez le site et redémarrez Apache :
+sudo a2ensite wordpress.conf
+sudo a2enmod rewrite
+sudo systemctl restart apache2
+
+
+
+
+# Accédez au site
+1. Ouvrez un navigateur et accédez à http://127.0.0.1:8080/wordpress
