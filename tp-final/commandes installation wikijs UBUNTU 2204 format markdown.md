@@ -99,7 +99,7 @@ Créez un utilisateur et un dossier pour Wiki.js :
 sudo adduser --system --group wikijs
 sudo mkdir -p /var/www/wikijs
  ls -la /var/www/
-sudo chown wikijs:wikijs /var/www/wikijs
+sudo chown -R wikijs:wikijs /var/www/wikijs
  ls -la /var/www/
 ls -la /var/www/wikijs
 ```
@@ -119,6 +119,7 @@ whoami
 cd /var/www/wikijs
 wget https://github.com/Requarks/wiki/releases/latest/download/wiki-js.tar.gz
 tar xzf wiki-js.tar.gz
+ls -la
 rm wiki-js.tar.gz
 cp config.sample.yml config.yml
 nano config.yml
