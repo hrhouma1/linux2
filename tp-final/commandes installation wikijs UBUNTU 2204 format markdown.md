@@ -101,6 +101,7 @@ sudo mkdir -p /var/www/wikijs
  ls -la /var/www/
 sudo chown wikijs:wikijs /var/www/wikijs
  ls -la /var/www/
+ls -la /var/www/wikijs
 ```
 
 ### Modifiez le shell de l'utilisateur `wikijs` pour permettre la connexion :
