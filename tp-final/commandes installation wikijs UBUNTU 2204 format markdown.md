@@ -83,6 +83,9 @@ CREATE DATABASE wikidb;
 CREATE USER 'wikidb_user'@'localhost' IDENTIFIED BY 'PASSWORD';
 GRANT ALL PRIVILEGES ON wikidb.* TO 'wikidb_user'@'localhost';
 FLUSH PRIVILEGES;
+show databses;
+use wikidb;
+show tables;
 EXIT;
 ```
 
