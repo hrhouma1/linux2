@@ -376,3 +376,18 @@ sudo systemctl restart wikijs
  ## Félicitations ! ==> Accès à Wiki.js
 
 Accédez à Wiki.js via votre navigateur en utilisant l'URL : `http://<adresse_IP>:3000`. Suivez les instructions pour créer un compte administrateur et terminer l'installation.
+
+
+
+# HTTP ==> HTTPS
+
+```ssh
+ssh -i key1.pem azureuser@<adresse_ip_publique_de_votre_vm>
+sudo -i
+sudo apt update
+sudo apt install certbot python3-certbot-apache
+sudo ufw allow 'Apache Full'
+sudo certbot --apache # Entrez votre nom de domaine lorsqu'il vous sera demandé comme ceci: haythemrehouma.eastus.cloudapp.azure.com
+sudo systemctl status certbot.timer
+sudo certbot renew --dry-run
+```
