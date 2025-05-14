@@ -60,7 +60,8 @@ Renforcez l'instance à l'aide de la commande :
 sudo mariadb-secure-installation
 ```
 
-![image](https://github.com/hrhouma/prevention-securite-de-linformation/assets/10111526/606a21b0-d0ef-4b3a-abb6-1a0c8c6e220b)
+![image](https://github.com/user-attachments/assets/3019525a-f7aa-4399-b070-07d971a9e44f)
+
 
 
 Suivez les instructions pour sécuriser l'installation de MariaDB. Ensuite, connectez-vous à MariaDB et configurez la base de données :
@@ -166,7 +167,3 @@ systemctl status wikijs
 ## Accès à Wiki.js
 
 Accédez à Wiki.js via votre navigateur en utilisant l'URL : `http://<adresse_IP>:3000`. Suivez les instructions pour créer un compte administrateur et terminer l'installation.
-
----
-
-Ce guide fournit toutes les étapes nécessaires pour configurer Wiki.js sur une machine Ubuntu 22.04, en utilisant MariaDB comme système de gestion de base de données.
