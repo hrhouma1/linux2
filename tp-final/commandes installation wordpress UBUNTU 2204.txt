@@ -24,6 +24,7 @@ wget https://wordpress.org/latest.tar.gz
 sudo tar xzvf latest.tar.gz -C /var/www/html/
 
 # Configuration des permissions
+ls -la /var/www/html/
 sudo chown -R www-data:www-data /var/www/html/wordpress
 sudo chmod -R 775 /var/www/html/wordpress
 
