@@ -52,6 +52,11 @@ Installez MariaDB pour gérer les données de Wiki.js :
 sudo apt install mariadb-server mariadb-client
 sudo systemctl start mariadb
 sudo systemctl enable mariadb
+sudo systemctl status mariadb
+mariadb
+exit;
+mysql
+exit;
 sudo mariadb-secure-installation
 ```
 
