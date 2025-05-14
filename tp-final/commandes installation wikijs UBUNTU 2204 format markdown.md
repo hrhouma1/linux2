@@ -342,3 +342,37 @@ systemctl status wikijs
 ## Accès à Wiki.js
 
 Accédez à Wiki.js via votre navigateur en utilisant l'URL : `http://<adresse_IP>:3000`. Suivez les instructions pour créer un compte administrateur et terminer l'installation.
+
+
+## pb4
+
+- Accès à azure http://<VOTRE-IP>:3000/
+  
+1. Il faut ajouter une règle de traffic entrant :
+
+![image](https://github.com/user-attachments/assets/401656ca-2543-4798-a8fb-9fff35b761d4)
+
+2. J'ai changé ici le paramètre bindIP: 0.0.0.0 à la place de bindIP: 127.0.0.1
+
+wikijs@wikiSrv:/var/www/wikijs$ nano config.yml
+
+![image](https://github.com/user-attachments/assets/e5b6ca2c-d2b0-440e-bb31-f6bcc8a39fc9)
+
+
+```ssh
+sudo systemctl daemon-reload
+sudo systemctl start wikijs
+sudo systemctl enable wikijs
+systemctl status wikijs
+```
+
+et surtout surtout :
+
+```ssh
+sudo systemctl restart wikijs
+```
+
+
+ ## Félicitations ! ==> Accès à Wiki.js
+
+Accédez à Wiki.js via votre navigateur en utilisant l'URL : `http://<adresse_IP>:3000`. Suivez les instructions pour créer un compte administrateur et terminer l'installation.
