@@ -150,7 +150,7 @@ su
 sudo nano /etc/systemd/system/wikijs.service
 ```
 
-## Troubleshooting
+## Section de Troubleshooting #1
 
 - Une fois arrivé ici, vous allez devoir changer le mot de passe de l'utilistaeur wikijs et l'ajouter aux sudoers
 
@@ -200,6 +200,144 @@ sudo systemctl start wikijs
 sudo systemctl enable wikijs
 systemctl status wikijs
 ```
+
+## Section de Troubleshooting #2
+
+
+```bash
+sudo journalctl -u wikijs.service --no-pager --lines=50
+
+
+
+
+sudo systemctl daemon-reload
+sudo systemctl start wikijs
+sudo systemctl enable wikijs
+systemctl status wikijs
+```
+
+### pb1
+![image](https://github.com/user-attachments/assets/04fe428f-fed9-4d62-9406-73168c862a4e)
+
+```bash
+sudo journalctl -u wikijs.service --no-pager --lines=50
+```
+
+```ssh
+May 14 13:29:17 wikiSrv node[5808]: bad indentation of a mapping entry at line 37, column 3:
+May 14 13:29:17 wikiSrv node[5808]:       sslOptions:
+May 14 13:29:17 wikiSrv node[5808]:       ^
+May 14 13:29:17 wikiSrv node[5808]: >>> Unable to read configuration file! Did you create the config.yml file?
+May 14 13:29:17 wikiSrv systemd[1]: wikijs.service: Main process exited, code=exited, status=1/FAILURE
+May 14 13:29:17 wikiSrv systemd[1]: wikijs.service: Failed with result 'exit-code'.
+May 14 13:29:17 wikiSrv systemd[1]: wikijs.service: Scheduled restart job, restart counter is at 5.
+May 14 13:29:17 wikiSrv systemd[1]: Stopped Wiki.js.
+May 14 13:29:17 wikiSrv systemd[1]: wikijs.service: Start request repeated too quickly.
+May 14 13:29:17 wikiSrv systemd[1]: wikijs.service: Failed with result 'exit-code'.
+May 14 13:29:17 wikiSrv systemd[1]: Failed to start Wiki.js.
+```
+
+![image](https://github.com/user-attachments/assets/baf8441a-0477-4e67-982d-ed73d8ee47e9)
+
+```ssh
+cd /var/www/wikijs
+nano config.yml
+commenter les deux lignes
+#  sslOptions:
+#    auto: true
+    # rejectUnauthorized: false
+```
+
+
+```ssh
+sudo systemctl daemon-reload
+sudo systemctl start wikijs
+sudo systemctl enable wikijs
+systemctl status wikijs
+```
+
+
+### pb2
+![image](https://github.com/user-attachments/assets/7982dad5-8b96-4e52-9a5f-7f9ad7e155fd)
+
+
+```ssh
+May 14 13:36:52 wikiSrv node[5954]: bad indentation of a mapping entry at line 47, column 3:
+May 14 13:36:52 wikiSrv node[5954]:       schema: public
+May 14 13:36:52 wikiSrv node[5954]:       ^
+May 14 13:36:52 wikiSrv node[5954]: >>> Unable to read configuration file! Did you create the config.yml file?
+May 14 13:36:52 wikiSrv systemd[1]: wikijs.service: Main process exited, code=exited, status=1/FAILURE
+May 14 13:36:52 wikiSrv systemd[1]: wikijs.service: Failed with result 'exit-code'.
+May 14 13:36:52 wikiSrv systemd[1]: wikijs.service: Scheduled restart job, restart counter is at 5.
+May 14 13:36:52 wikiSrv systemd[1]: Stopped Wiki.js.
+May 14 13:36:52 wikiSrv systemd[1]: wikijs.service: Start request repeated too quickly.
+May 14 13:36:52 wikiSrv systemd[1]: wikijs.service: Failed with result 'exit-code'.
+May 14 13:36:52 wikiSrv systemd[1]: Failed to start Wiki.js.
+```
+
+
+
+
+![image](https://github.com/user-attachments/assets/b380a06d-0d6a-4a74-af4c-62d3c08cae7a)
+
+
+
+
+```ssh
+cd /var/www/wikijs
+nano config.yml
+commenter les deux lignes
+  # Optional - PostgreSQL only:
+#  schema: public
+```
+
+
+```ssh
+sudo systemctl daemon-reload
+sudo systemctl start wikijs
+sudo systemctl enable wikijs
+systemctl status wikijs
+```
+
+### pb3
+![image](https://github.com/user-attachments/assets/ea61e773-5d69-4438-80a4-c16845b3571f)
+
+```ssh
+May 14 13:38:54 wikiSrv node[6066]: bad indentation of a mapping entry at line 50, column 3:
+May 14 13:38:54 wikiSrv node[6066]:       storage: path/to/database.sqlite
+May 14 13:38:54 wikiSrv node[6066]:       ^
+May 14 13:38:54 wikiSrv node[6066]: >>> Unable to read configuration file! Did you create the config.yml file?
+May 14 13:38:54 wikiSrv systemd[1]: wikijs.service: Main process exited, code=exited, status=1/FAILURE
+May 14 13:38:54 wikiSrv systemd[1]: wikijs.service: Failed with result 'exit-code'.
+May 14 13:38:54 wikiSrv systemd[1]: wikijs.service: Scheduled restart job, restart counter is at 5.
+May 14 13:38:54 wikiSrv systemd[1]: Stopped Wiki.js.
+May 14 13:38:54 wikiSrv systemd[1]: wikijs.service: Start request repeated too quickly.
+May 14 13:38:54 wikiSrv systemd[1]: wikijs.service: Failed with result 'exit-code'
+```
+
+
+
+
+![image](https://github.com/user-attachments/assets/940fdb35-3d60-4dbc-841f-2edbbb0a16aa)
+
+
+
+
+```ssh
+cd /var/www/wikijs
+nano config.yml
+commenter les deux lignes
+  # SQLite only:
+#  storage: path/to/database.sqlite
+```
+
+```ssh
+sudo systemctl daemon-reload
+sudo systemctl start wikijs
+sudo systemctl enable wikijs
+systemctl status wikijs
+```
+
 
 ## Accès à Wiki.js
 
