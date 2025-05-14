@@ -150,7 +150,21 @@ su
 sudo nano /etc/systemd/system/wikijs.service
 ```
 
+## Troubleshooting
+
 - Une fois arrivé ici, vous allez devoir changer le mot de passe de l'utilistaeur wikijs et l'ajouter aux sudoers
+
+
+```bash
+whoami ==> wikijs
+exit; ou (sudo -s) ou (su)
+whoami ==> root
+sudo passwd wikijs
+sudo usermod -aG sudo wikijs
+su - wikijs
+sudo nano /etc/systemd/system/wikijs.service
+```
+
 
 
 ```bash
