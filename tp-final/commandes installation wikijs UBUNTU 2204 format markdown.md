@@ -98,7 +98,9 @@ Créez un utilisateur et un dossier pour Wiki.js :
 ```sh
 sudo adduser --system --group wikijs
 sudo mkdir -p /var/www/wikijs
+ ls -la /var/www/
 sudo chown wikijs:wikijs /var/www/wikijs
+ ls -la /var/www/
 ```
 
 ### Modifiez le shell de l'utilisateur `wikijs` pour permettre la connexion :
