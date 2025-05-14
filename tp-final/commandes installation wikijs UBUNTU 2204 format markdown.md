@@ -114,6 +114,8 @@ sudo usermod -s /bin/bash wikijs
 
 ```sh
 sudo su - wikijs
+pwd
+whoami
 cd /var/www/wikijs
 wget https://github.com/Requarks/wiki/releases/latest/download/wiki-js.tar.gz
 tar xzf wiki-js.tar.gz
