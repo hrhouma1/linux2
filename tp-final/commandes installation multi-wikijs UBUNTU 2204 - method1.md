@@ -221,6 +221,4 @@ Ouvre dans ton navigateur :
 * [http://wikivm.eastus.cloudapp.azure.com:3002](http://wikivm.eastus.cloudapp.azure.com:3002)
 * [http://wikivm.eastus.cloudapp.azure.com:3003](http://wikivm.eastus.cloudapp.azure.com:3003)
 
-À la première connexion, tu seras invité à créer un compte administrateur Wiki.js pour chaque site.
 
- ?
